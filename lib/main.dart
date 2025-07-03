@@ -54,6 +54,10 @@ Future<void> main({
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   _skipFirebaseGlobal = skipFirebase;
+  if (skipFirebase) {
+    // Prevent FlutterLocalNotificationsPlugin from initializing in tests.
+    NotificationService.disableForTests();
+  }
   if (!skipFirebase) {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -61,14 +65,14 @@ Future<void> main({
     if (kIsWeb) {
       await FirebaseFirestore.instance.enablePersistence();
     }
-  }  // Only call NotificationService.init() if not injecting a mock
+  } // Only call NotificationService.init() if not injecting a mock
   if (notificationService == null) {
     await NotificationService.init();
   }
   final authService0 = authService ?? AuthService();
   final databaseService0 = databaseService ?? DatabaseService();
-  final offlineSyncService0 = offlineSyncService ?? 
-    (skipFirebase ? FakeOfflineSyncService() : OfflineSyncService());
+  final offlineSyncService0 = offlineSyncService ??
+      (skipFirebase ? FakeOfflineSyncService() : OfflineSyncService());
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(
@@ -202,7 +206,8 @@ class MyApp extends StatelessWidget {
             '/breedManagement': (context) => const BreedManagementScreen(),
             '/userManagement': (context) => const UserManagementScreen(),
             '/adminOverride': (context) => const AdminOverrideScreen(),
-            '/animalSearchExport': (context) => const AnimalSearchExportScreen(),
+            '/animalSearchExport': (context) =>
+                const AnimalSearchExportScreen(),
             '/logSearchExport': (context) => const LogSearchExportScreen(),
             '/partners': (context) => const PartnersScreen(),
             '/notifications': (context) => const NotificationsScreen(),

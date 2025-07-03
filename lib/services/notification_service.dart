@@ -59,4 +59,10 @@ class NotificationService {
   static Future<void> cancel(int id) async {
     await _notifications.cancel(id);
   }
+
+  /// Convenience to disable notification plugin setup & calls in tests.
+  /// Call early (e.g. in main when `skipFirebase` is true).
+  static void disableForTests() {
+    skipInitForTests = true;
+  }
 }

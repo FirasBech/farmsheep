@@ -14,9 +14,11 @@ class ConnectivityBanner extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         MaterialBanner(
+          key: const Key('offline_banner'),
           content: Row(
             children: [
-              const Text('You are offline. Changes will sync when reconnected.'),
+              const Text(
+                  'You are offline. Changes will sync when reconnected.'),
               if (offlineSync.isSyncing) ...[
                 const SizedBox(width: 16),
                 const SizedBox(

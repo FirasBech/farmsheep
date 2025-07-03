@@ -12,6 +12,11 @@ import 'package:sheepfarm/models/farm.dart';
 import 'package:sheepfarm/models/partner.dart';
 import 'package:sheepfarm/models/manual_log.dart';
 import 'package:sheepfarm/services/offline_sync_service.dart';
+import 'package:sheepfarm/services/notification_service.dart';
+
+void _initTestEnv() {
+  NotificationService.skipInitForTests = true;
+}
 
 class FakeUserProvider extends ChangeNotifier implements UserProvider {
   @override
@@ -115,6 +120,7 @@ class TestFarmProvider extends ChangeNotifier implements FarmProvider {
 }
 
 void main() {
+  _initTestEnv();
   testWidgets('HomeScreen shows dashboard and admin tiles',
       (WidgetTester tester) async {
     await tester.pumpWidget(

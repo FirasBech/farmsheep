@@ -20,6 +20,7 @@ import 'package:sheepfarm/screens/home_screen.dart';
 import 'package:sheepfarm/screens/add_animal_screen.dart' as add_animal_screen;
 import 'package:provider/provider.dart';
 import 'package:sheepfarm/providers/farm_provider.dart';
+import 'package:sheepfarm/services/offline_sync_service.dart';
 
 // Manual fakes for integration tests
 class FakeUser extends Fake implements User {
@@ -336,14 +337,6 @@ class FakeUserProvider extends ChangeNotifier {
   Future<void> loadUserRole() async {}
 }
 
-class FakeOfflineSyncService extends ChangeNotifier {
-  bool get isOnline => true;
-  bool get isSyncing => false;
-  bool get hasConflicts => false;
-  String? get conflictMessage => null;
-  Future<void> manualSync() async {}
-}
-
 void main() {
   add_animal_screen.isIntegrationTest = true;
 
@@ -396,7 +389,8 @@ void main() {
             ChangeNotifierProvider.value(
                 value: TestFarmProvider(
                     farms: [testFarm], selectedFarm: testFarm)),
-            ChangeNotifierProvider.value(value: FakeOfflineSyncService()),
+            ChangeNotifierProvider<OfflineSyncService>.value(
+                value: FakeOfflineSyncService()),
           ],
           child: MaterialApp(
             home: const HomeScreen(),
@@ -433,7 +427,8 @@ void main() {
       await tester.tap(find.byKey(const Key('animal_card_0')));
       await tester.pumpAndSettle();
       // Should show Animal Details screen by key
-      expect(find.byKey(const Key('animal_details_screen_title')), findsOneWidget);
+      expect(
+          find.byKey(const Key('animal_details_screen_title')), findsOneWidget);
     });
 
     testWidgets('Shows error on failed login', (tester) async {
@@ -491,7 +486,8 @@ void main() {
       await tester.pumpAndSettle();
       // Fill animal form
       await tester.enterText(find.byKey(const Key('animal_tag_field')), '1234');
-      await tester.enterText(find.byKey(const Key('animal_breed_field')), 'Merino');
+      await tester.enterText(
+          find.byKey(const Key('animal_breed_field')), 'Merino');
       await tester.tap(find.byKey(const Key('animal_type_dropdown')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sheep').last);
@@ -608,7 +604,8 @@ void main() {
       await tester.pumpAndSettle();
       // Fill animal form with duplicate tag
       await tester.enterText(find.byKey(const Key('animal_tag_field')), '1234');
-      await tester.enterText(find.byKey(const Key('animal_breed_field')), 'Merino');
+      await tester.enterText(
+          find.byKey(const Key('animal_breed_field')), 'Merino');
       await tester.tap(find.byKey(const Key('animal_type_dropdown')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sheep').last);
@@ -651,7 +648,8 @@ void main() {
       await tester.tap(find.byKey(const Key('animal_save_button')));
       await tester.pumpAndSettle();
       // Wait for detail screen to appear
-      expect(find.byKey(const Key('animal_details_screen_title')), findsOneWidget);
+      expect(
+          find.byKey(const Key('animal_details_screen_title')), findsOneWidget);
       // Should show updated breed
       expect(find.byKey(const Key('animal_breed_text')), findsOneWidget);
       expect(find.text('UpdatedBreed'), findsOneWidget);

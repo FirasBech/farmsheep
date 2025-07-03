@@ -114,20 +114,6 @@ class TestFarmProvider extends ChangeNotifier implements FarmProvider {
   FakeDatabaseService get db => FakeDatabaseService();
 }
 
-class FakeOfflineSyncService extends ChangeNotifier
-    implements OfflineSyncService {
-  @override
-  bool get isOnline => true;
-  @override
-  bool get isSyncing => false;
-  @override
-  bool get hasConflicts => false;
-  @override
-  String? get conflictMessage => null;
-  @override
-  Future<void> manualSync() async {}
-}
-
 void main() {
   testWidgets('HomeScreen shows dashboard and admin tiles',
       (WidgetTester tester) async {
@@ -183,11 +169,14 @@ void main() {
       }
     }
     // Use key-based finder for dashboard tile (e.g., 'dashboard_farm_dashboard_tile')
-    expect(find.byKey(const Key('dashboard_farm_dashboard_tile')), findsOneWidget);
+    expect(
+        find.byKey(const Key('dashboard_farm_dashboard_tile')), findsOneWidget);
     // Use key-based finder for Animals and Logs tile text to avoid duplicate text error
-    expect(find.byKey(const Key('dashboard_tile_text_animals')), findsOneWidget);
+    expect(
+        find.byKey(const Key('dashboard_tile_text_animals')), findsOneWidget);
     expect(find.byKey(const Key('dashboard_tile_text_logs')), findsOneWidget);
-    expect(find.byKey(const Key('dashboard_tile_text_add_partner')), findsOneWidget);
+    expect(find.byKey(const Key('dashboard_tile_text_add_partner')),
+        findsOneWidget);
     expect(find.byType(GridView), findsOneWidget);
   });
 }

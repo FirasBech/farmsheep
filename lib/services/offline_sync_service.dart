@@ -60,3 +60,28 @@ class OfflineSyncService with ChangeNotifier {
     notifyListeners();
   }
 }
+
+/// Lightweight stub used in tests to bypass Firebase and connectivity logic.
+/// It always reports online and not syncing.
+/// Placed in lib so both production code (under a `skipFirebase` flag) and
+/// tests can reference it without conditional imports.
+class FakeOfflineSyncService extends OfflineSyncService {
+  FakeOfflineSyncService() : super(testMode: true);
+
+  @override
+  bool get isOnline => true;
+
+  @override
+  bool get isSyncing => false;
+
+  @override
+  bool get hasConflicts => false;
+
+  @override
+  String? get conflictMessage => null;
+
+  @override
+  Future<void> manualSync() async {
+    // No-op in tests.
+  }
+}

@@ -206,20 +206,6 @@ class TestFarmProvider extends FarmProvider {
   // Stub out any other required methods as needed
 }
 
-class FakeOfflineSyncService extends OfflineSyncService {
-  FakeOfflineSyncService() : super(testMode: true);
-  @override
-  bool get isOnline => true;
-  @override
-  bool get isSyncing => false;
-  @override
-  bool get hasConflicts => false;
-  @override
-  String? get conflictMessage => null;
-  @override
-  Future<void> manualSync() async {}
-}
-
 class FakeNotificationService {
   static Future<void> init() async {}
 }
@@ -230,7 +216,6 @@ void main() {
   // Create single instances to reuse across tests
   late FakeAuthService fakeAuth;
   late FakeDatabaseService fakeDb;
-  late FakeOfflineSyncService fakeOfflineSync;
 
   setUpAll(() {
     NotificationService.skipInitForTests = true;
@@ -240,7 +225,6 @@ void main() {
     // Create fresh instances for each test to avoid state pollution
     fakeAuth = FakeAuthService();
     fakeDb = FakeDatabaseService();
-    fakeOfflineSync = FakeOfflineSyncService();
   });
 
   tearDown(() {
@@ -254,7 +238,6 @@ void main() {
         skipFirebase: true,
         authService: fakeAuth,
         databaseService: fakeDb,
-        offlineSyncService: fakeOfflineSync as dynamic,
       );
       await tester
           .pumpAndSettle(const Duration(seconds: 1)); // Reduced wait time
@@ -269,7 +252,6 @@ void main() {
         skipFirebase: true,
         authService: fakeAuth,
         databaseService: fakeDb,
-        offlineSyncService: fakeOfflineSync as dynamic,
       );
       await tester
           .pumpAndSettle(const Duration(seconds: 1)); // Reduced wait time
@@ -281,7 +263,6 @@ void main() {
         skipFirebase: true,
         authService: fakeAuth,
         databaseService: fakeDb,
-        offlineSyncService: fakeOfflineSync as dynamic,
       );
       await tester
           .pumpAndSettle(const Duration(seconds: 1)); // Reduced wait time
@@ -314,7 +295,7 @@ void main() {
             ChangeNotifierProvider<UserProvider>.value(value: userProvider),
             ChangeNotifierProvider<FarmProvider>.value(value: farmProvider),
             ChangeNotifierProvider<OfflineSyncService>.value(
-                value: fakeOfflineSync),
+                value: FakeOfflineSyncService()),
             StreamProvider<User?>.value(
               value: fakeAuth.authStateChanges,
               initialData: FakeUser(),
@@ -376,7 +357,7 @@ void main() {
             ChangeNotifierProvider<UserProvider>.value(value: userProvider),
             ChangeNotifierProvider<FarmProvider>.value(value: farmProvider),
             ChangeNotifierProvider<OfflineSyncService>.value(
-                value: fakeOfflineSync),
+                value: FakeOfflineSyncService()),
             StreamProvider<User?>.value(
               value: fakeAuth.authStateChanges,
               initialData: FakeUser(),
@@ -443,7 +424,7 @@ void main() {
             ChangeNotifierProvider<UserProvider>.value(value: userProvider),
             ChangeNotifierProvider<FarmProvider>.value(value: farmProvider),
             ChangeNotifierProvider<OfflineSyncService>.value(
-                value: fakeOfflineSync),
+                value: FakeOfflineSyncService()),
             StreamProvider<User?>.value(
               value: fakeAuth.authStateChanges,
               initialData: FakeUser(),
@@ -501,7 +482,7 @@ void main() {
             ChangeNotifierProvider<UserProvider>.value(value: userProvider),
             ChangeNotifierProvider<FarmProvider>.value(value: farmProvider),
             ChangeNotifierProvider<OfflineSyncService>.value(
-                value: fakeOfflineSync),
+                value: FakeOfflineSyncService()),
             StreamProvider<User?>.value(
               value: fakeAuth.authStateChanges,
               initialData: FakeUser(),
@@ -512,7 +493,8 @@ void main() {
               '/': (_) => const ConnectivityBanner(child: HomeScreen()),
               '/animals': (_) => const Scaffold(body: Text('Animals Page')),
               '/logs': (_) => const Scaffold(body: Text('Logs Page')),
-              '/addAnimal': (_) => const Scaffold(body: Text('Add Animal Page')),
+              '/addAnimal': (_) =>
+                  const Scaffold(body: Text('Add Animal Page')),
             },
           ),
         ),

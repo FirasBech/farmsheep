@@ -123,7 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     ]);
-    print('DEBUG: HomeScreen tile keys: ${tiles.map((t) => t.tileKey.toString()).join(', ')}');
+    print(
+        'DEBUG: HomeScreen tile keys: ${tiles.map((t) => t.tileKey.toString()).join(', ')}');
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -141,104 +142,124 @@ class _HomeScreenState extends State<HomeScreen> {
           // ...existing code...
         ],
       ),
-      body: Column(
-        children: [
-          ConnectivityBanner(
-            child: Container(), // Placeholder, replace with actual child
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(isWide ? 32 : 16),
-              child: _DashboardGrid(tiles: tiles, isWide: isWide),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Card(
-            color: Colors.amber[50],
-            elevation: 0,
-            margin: const EdgeInsets.only(bottom: 24),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.waving_hand, color: Colors.amber, size: 32),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Welcome, ${Provider.of<UserProvider>(context).displayName ?? 'Farmer'}! Here are your latest stats:',
-                      style:
-                          const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ConnectivityBanner(
+                    child:
+                        Container(), // Placeholder, replace with actual child
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(isWide ? 32 : 16),
+                    child: _DashboardGrid(tiles: tiles, isWide: isWide),
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    color: Colors.amber[50],
+                    elevation: 0,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.waving_hand,
+                              color: Colors.amber, size: 32),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'Welcome, ${Provider.of<UserProvider>(context).displayName ?? 'Farmer'}! Here are your latest stats:',
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  // Advanced dashboard UI: Stat tiles with live data
+                  if (farm != null)
+                    FutureBuilder<List<int>>(
+                      future: Future.wait([
+                        db
+                            .streamAnimals(farmId: farm.id)
+                            .first
+                            .then((a) => a.length),
+                        db.getPartnersForFarm(farm.id).then((p) => p.length),
+                        db
+                            .streamManualLogs(farmId: farm.id)
+                            .first
+                            .then((l) => l.length),
+                      ]),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _StatTile(
+                                  icon: Icons.pets,
+                                  label: 'Animals',
+                                  value: '...'),
+                              _StatTile(
+                                  icon: Icons.people,
+                                  label: 'Partners',
+                                  value: '...'),
+                              _StatTile(
+                                  icon: Icons.list_alt,
+                                  label: 'Logs',
+                                  value: '...'),
+                            ],
+                          );
+                        }
+                        final stats = snapshot.data!;
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _StatTile(
+                                icon: Icons.pets,
+                                label: 'Animals',
+                                value: stats[0].toString()),
+                            _StatTile(
+                                icon: Icons.people,
+                                label: 'Partners',
+                                value: stats[1].toString()),
+                            _StatTile(
+                                icon: Icons.list_alt,
+                                label: 'Logs',
+                                value: stats[2].toString()),
+                          ],
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                  // Customizable dashboard tile for alerts/notifications
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Card(
+                      color: Colors.blue[50],
+                      elevation: 0,
+                      child: ListTile(
+                        leading: const Icon(Icons.notifications_active,
+                            color: Colors.blue, size: 32),
+                        title: const Text('Alerts & Notifications',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: const Text(
+                            'Tap to view or manage your farm notifications.'),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/notifications'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-          ),
-          // Advanced dashboard UI: Stat tiles with live data
-          if (farm != null)
-            FutureBuilder<List<int>>(
-              future: Future.wait([
-                db.streamAnimals(farmId: farm.id).first.then((a) => a.length),
-                db.getPartnersForFarm(farm.id).then((p) => p.length),
-                db
-                    .streamManualLogs(farmId: farm.id)
-                    .first
-                    .then((l) => l.length),
-              ]),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _StatTile(
-                          icon: Icons.pets, label: 'Animals', value: '...'),
-                      _StatTile(
-                          icon: Icons.people, label: 'Partners', value: '...'),
-                      _StatTile(
-                          icon: Icons.list_alt, label: 'Logs', value: '...'),
-                    ],
-                  );
-                }
-                final stats = snapshot.data!;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _StatTile(
-                        icon: Icons.pets,
-                        label: 'Animals',
-                        value: stats[0].toString()),
-                    _StatTile(
-                        icon: Icons.people,
-                        label: 'Partners',
-                        value: stats[1].toString()),
-                    _StatTile(
-                        icon: Icons.list_alt,
-                        label: 'Logs',
-                        value: stats[2].toString()),
-                  ],
-                );
-              },
-            ),
-          const SizedBox(height: 16),
-          // Customizable dashboard tile for alerts/notifications
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Card(
-              color: Colors.blue[50],
-              elevation: 0,
-              child: ListTile(
-                leading: const Icon(Icons.notifications_active,
-                    color: Colors.blue, size: 32),
-                title: const Text('Alerts & Notifications',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle:
-                    const Text('Tap to view or manage your farm notifications.'),
-                onTap: () => Navigator.pushNamed(context, '/notifications'),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
+          );
+        },
       ),
     );
   }
@@ -267,6 +288,8 @@ class _DashboardGrid extends StatelessWidget {
             crossAxisSpacing: isWide ? 32 : 16,
             mainAxisSpacing: isWide ? 32 : 16,
             childAspectRatio: isWide ? 1.1 : 1,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             children: tiles,
           ),
         ),
@@ -316,7 +339,8 @@ class _Tile extends StatelessWidget {
                           color: Theme.of(context).colorScheme.primary),
                       const SizedBox(height: 16),
                       Text(label,
-                          key: Key('dashboard_tile_text_${label.replaceAll(' ', '_').toLowerCase()}'),
+                          key: Key(
+                              'dashboard_tile_text_${label.replaceAll(' ', '_').toLowerCase()}'),
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge

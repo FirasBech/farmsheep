@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sheepfarm/providers/user_provider.dart';
 import 'package:sheepfarm/services/auth_service.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class _FakeAuthService extends Fake implements AuthService {
@@ -37,11 +36,9 @@ void main() {
     });
 
     test('loadUserRole sets role and initialized flag', () async {
-      await fakeAsync((async) async {
-        await provider.loadUserRole();
-        expect(provider.role, equals('admin'));
-        expect(provider.isInitialized, isTrue);
-      });
+      await provider.loadUserRole();
+      expect(provider.role, equals('admin'));
+      expect(provider.isInitialized, isTrue);
     });
 
     test('displayName falls back to email prefix when displayName null', () {

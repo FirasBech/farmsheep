@@ -40,7 +40,7 @@ class AuthService {
     await _db.collection('users').doc(cred.user!.uid).set({
       'name': name,
       'email': email,
-      'role': 'partner', // default role
+      'role': 'admin', // default role changed so first user can create farms
       'createdAt': FieldValue.serverTimestamp(),
     });
     return cred;

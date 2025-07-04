@@ -36,6 +36,7 @@ import 'screens/partners_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/edit_animal_screen.dart';
 import 'models/animal.dart';
+import 'screens/login_screen.dart';
 
 // Global flag to indicate Firebase initialization skip
 bool _skipFirebaseGlobal = false;
@@ -211,6 +212,7 @@ class MyApp extends StatelessWidget {
             '/logSearchExport': (context) => const LogSearchExportScreen(),
             '/partners': (context) => const PartnersScreen(),
             '/notifications': (context) => const NotificationsScreen(),
+            '/login': (context) => const LoginScreen(),
           },
         ),
       ),

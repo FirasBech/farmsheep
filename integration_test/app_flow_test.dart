@@ -406,6 +406,11 @@ void main() {
       );
       await tester.pumpAndSettle(
           const Duration(milliseconds: 500)); // Reduced wait time
+      // Perform login
+      await tester.enterText(find.byType(TextField).at(0), 'admin@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'password123');
+      await tester.tap(find.byIcon(Icons.login));
+      await tester.pumpAndSettle();
       // Wait for dashboard to appear (manual loop)
       const dashboardKey = HomeScreen.animalsTileKey;
       final start = DateTime.now();

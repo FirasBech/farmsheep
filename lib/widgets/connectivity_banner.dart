@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/offline_sync_service.dart';
+import '../main.dart' show ConnectivityStatus;
 
 class ConnectivityBanner extends StatelessWidget {
   final Widget child;
@@ -9,7 +10,10 @@ class ConnectivityBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final offlineSync = Provider.of<OfflineSyncService>(context);
-    if (offlineSync.isOnline) return child;
+    final connectivity =
+        Provider.of<ConnectivityStatus?>(context, listen: false);
+    final isOnline = (connectivity?.isOnline ?? true) && offlineSync.isOnline;
+    if (isOnline) return child;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as p;
 import '../services/auth_service.dart';
-import '../providers/user_provider.dart';
-import '../providers/farm_provider.dart';
-import '../widgets/connectivity_banner.dart';
-import '../services/notification_service.dart';
+import '../features/notification/presentation/providers/notification_notifier.dart';
 import '../services/database_service.dart';
-import 'notifications_screen.dart';
+import '../features/farm/presentation/providers/farm_notifier.dart';
+import '../features/auth/presentation/providers/auth_notifier.dart';
+import '../core/utils/l10n_extension.dart';
 
 // Add keys for robust test targeting
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   static const Key animalsTileKey = Key('dashboard_animals_tile');
   static const Key logsTileKey = Key('dashboard_logs_tile');
   static const Key addPartnerTileKey = Key('dashboard_add_partner_tile');
@@ -19,35 +19,56 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({super.key});
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<UserProvider>(context, listen: false).loadUserRole();
-    // Demo: Show a notification on dashboard open
+    // Load farms and role into Riverpod providers
+    final userId = p.Provider.of<AuthService>(context, listen: false)
+        .currentUser
+        ?.uid;
+    if (userId != null) {
+      ref.read(farmNotifierProvider.notifier).loadFarms(userId);
+    } else {
+      // No authenticated user — go back to login.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      });
+    }
+    if (!ref.read(authNotifierProvider).roleLoaded) {
+      ref.read(authNotifierProvider.notifier).loadRole();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService.showNotification(
-        title: 'Welcome',
-        body: 'Check your animals and logs for today!',
+      if (!mounted) return;
+      final l10n = context.l10n;
+      ref.read(notificationNotifierProvider.notifier).show(
+        title: l10n.welcomeNotificationTitle,
+        body: l10n.welcomeNotificationBody,
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print('DEBUG: HomeScreen build called');
-    final userProv = Provider.of<UserProvider>(context);
-    final role = userProv.role;
+    final farmState = ref.watch(farmNotifierProvider);
+
+    // Show spinner while loading farms from Firestore (including initial cold start).
+    if (farmState.loading || !farmState.initialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final l10n = context.l10n;
+    final role = ref.watch(authNotifierProvider).role;
     final isWide = MediaQuery.of(context).size.width > 600;
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final farmProv = Provider.of<FarmProvider>(context);
-    final farms = farmProv.farms;
-    final db = Provider.of<DatabaseService>(context, listen: false);
-    final farm = farmProv.selectedFarm;
-    // If user has no farms, force to farm list
+    final authService = p.Provider.of<AuthService>(context, listen: false);
+    final farms = farmState.activeFarms;
+    final farm = farmState.selectedFarm;
+    final db = p.Provider.of<DatabaseService>(context, listen: false);
+
+    // If user has no farms, redirect to farm list
     if (farms.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/farms');
@@ -56,216 +77,182 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     // Build the list of tiles
     final List<_Tile> tiles = [
-      const _Tile(
+      _Tile(
           tileKey: HomeScreen.animalsTileKey,
-          label: 'Animals',
+          label: l10n.tileAnimals,
           icon: Icons.pets,
           route: '/animals'),
-      const _Tile(
-          tileKey: Key('dashboard_farm_dashboard_tile'),
-          label: 'Farm Dashboard',
+      _Tile(
+          tileKey: const Key('dashboard_farm_dashboard_tile'),
+          label: l10n.tileFarmDashboard,
           icon: Icons.dashboard,
           route: '/farmDashboard'),
-      const _Tile(
+      _Tile(
           tileKey: HomeScreen.logsTileKey,
-          label: 'Logs',
+          label: l10n.tileLogs,
           icon: Icons.list_alt,
           route: '/logs'),
       if (role == 'admin')
-        const _Tile(
-            tileKey: Key('dashboard_breed_management_tile'),
-            label: 'Breed Management',
+        _Tile(
+            tileKey: const Key('dashboard_breed_management_tile'),
+            label: l10n.tileBreedManagement,
             icon: Icons.category,
             route: '/breedManagement'),
     ];
     if (role == 'admin') {
       tiles.addAll([
-        const _Tile(
+        _Tile(
             tileKey: HomeScreen.addPartnerTileKey,
-            label: 'Add Partner',
+            label: l10n.tileAddPartner,
             icon: Icons.person_add,
             route: '/addPartner'),
-        const _Tile(
+        _Tile(
             tileKey: HomeScreen.adminLogsTileKey,
-            label: 'Admin Logs',
+            label: l10n.tileAdminLogs,
             icon: Icons.admin_panel_settings,
             route: '/adminLogs'),
-        const _Tile(
-            tileKey: Key('dashboard_user_management_tile'),
-            label: 'User Management',
+        _Tile(
+            tileKey: const Key('dashboard_user_management_tile'),
+            label: l10n.tileUserManagement,
             icon: Icons.supervisor_account,
             route: '/userManagement'),
-        const _Tile(
-            tileKey: Key('dashboard_admin_override_tile'),
-            label: 'Admin Override',
+        _Tile(
+            tileKey: const Key('dashboard_admin_override_tile'),
+            label: l10n.tileAdminOverride,
             icon: Icons.edit,
             route: '/adminOverride'),
       ]);
     }
     tiles.addAll([
-      const _Tile(
-          tileKey: Key('dashboard_animal_search_export_tile'),
-          label: 'Animal Search & Export',
+      _Tile(
+          tileKey: const Key('dashboard_animal_search_export_tile'),
+          label: l10n.tileAnimalSearchExport,
           icon: Icons.search,
           route: '/animalSearchExport'),
-      const _Tile(
-          tileKey: Key('dashboard_log_search_export_tile'),
-          label: 'Log Search & Export',
+      _Tile(
+          tileKey: const Key('dashboard_log_search_export_tile'),
+          label: l10n.tileLogSearchExport,
           icon: Icons.file_download,
           route: '/logSearchExport'),
       _Tile(
         tileKey: HomeScreen.logoutTileKey,
-        label: 'Logout',
+        label: l10n.tileLogout,
         icon: Icons.logout,
         action: () async {
           await authService.signOut();
+          if (!context.mounted) return;
           Navigator.pushReplacementNamed(context, '/login');
         },
       ),
     ]);
-    print(
-        'DEBUG: HomeScreen tile keys: ${tiles.map((t) => t.tileKey.toString()).join(', ')}');
     return Scaffold(
+      backgroundColor: const Color(0xFF2E7D32),
       appBar: AppBar(
-        title: Row(
+        key: HomeScreen.dashboardTitleKey,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.waving_hand, color: Colors.amber, size: 32),
-            const SizedBox(width: 12),
-            const Text('Welcome, ', style: TextStyle(fontSize: 26)),
-            Text(
-              Provider.of<UserProvider>(context).displayName ?? 'Farmer',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
-            ),
+            Text(l10n.appTitle,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            if (farm != null)
+              Text(farm.name,
+                  style: const TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
-        actions: const [
-          // ...existing code...
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            tooltip: l10n.notificationsTooltip,
+            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outlined),
+            tooltip: l10n.profileTooltip,
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ConnectivityBanner(
-                    child:
-                        Container(), // Placeholder, replace with actual child
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(isWide ? 32 : 16),
-                    child: _DashboardGrid(tiles: tiles, isWide: isWide),
-                  ),
-                  const SizedBox(height: 24),
-                  Card(
-                    color: Colors.amber[50],
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.waving_hand,
-                              color: Colors.amber, size: 32),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              'Welcome, ${Provider.of<UserProvider>(context).displayName ?? 'Farmer'}! Here are your latest stats:',
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Advanced dashboard UI: Stat tiles with live data
-                  if (farm != null)
-                    FutureBuilder<List<int>>(
-                      future: Future.wait([
-                        db
-                            .streamAnimals(farmId: farm.id)
-                            .first
-                            .then((a) => a.length),
-                        db.getPartnersForFarm(farm.id).then((p) => p.length),
-                        db
-                            .streamManualLogs(farmId: farm.id)
-                            .first
-                            .then((l) => l.length),
-                      ]),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _StatTile(
-                                  icon: Icons.pets,
-                                  label: 'Animals',
-                                  value: '...'),
-                              _StatTile(
-                                  icon: Icons.people,
-                                  label: 'Partners',
-                                  value: '...'),
-                              _StatTile(
-                                  icon: Icons.list_alt,
-                                  label: 'Logs',
-                                  value: '...'),
-                            ],
-                          );
-                        }
-                        final stats = snapshot.data!;
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _StatTile(
-                                icon: Icons.pets,
-                                label: 'Animals',
-                                value: stats[0].toString()),
-                            _StatTile(
-                                icon: Icons.people,
-                                label: 'Partners',
-                                value: stats[1].toString()),
-                            _StatTile(
-                                icon: Icons.list_alt,
-                                label: 'Logs',
-                                value: stats[2].toString()),
-                          ],
-                        );
-                      },
-                    ),
-                  const SizedBox(height: 16),
-                  // Customizable dashboard tile for alerts/notifications
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Card(
-                      color: Colors.blue[50],
-                      elevation: 0,
+      body: Column(
+        children: [
+          // Stats row on green background
+          if (farm != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: FutureBuilder<List<int>>(
+                future: Future.wait([
+                  db.streamAnimals(farmId: farm.id).first.then((a) => a.length),
+                  db.getPartnersForFarm(farm.id).then((p) => p.length),
+                  db.streamManualLogs(farmId: farm.id).first.then((l) => l.length),
+                ]),
+                builder: (context, snapshot) {
+                  final stats = snapshot.data ?? [-1, -1, -1];
+                  return Row(
+                    children: [
+                      _StatTile(icon: Icons.pets, label: l10n.statAnimals,
+                          value: stats[0] < 0 ? '—' : stats[0].toString()),
+                      const SizedBox(width: 12),
+                      _StatTile(icon: Icons.people, label: l10n.statPartners,
+                          value: stats[1] < 0 ? '—' : stats[1].toString()),
+                      const SizedBox(width: 12),
+                      _StatTile(icon: Icons.list_alt, label: l10n.statLogs,
+                          value: stats[2] < 0 ? '—' : stats[2].toString()),
+                    ],
+                  );
+                },
+              ),
+            ),
+          // Main content on light background
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F8E9),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(isWide ? 24 : 16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    _DashboardGrid(tiles: tiles, isWide: isWide),
+                    const SizedBox(height: 16),
+                    Card(
                       child: ListTile(
-                        leading: const Icon(Icons.notifications_active,
-                            color: Colors.blue, size: 32),
-                        title: const Text('Alerts & Notifications',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: const Text(
-                            'Tap to view or manage your farm notifications.'),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        leading: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.notifications_active,
+                              color: Color(0xFF2E7D32), size: 22),
+                        ),
+                        title: Text(l10n.alertsNotificationsTitle,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 15)),
+                        subtitle: Text(l10n.alertsNotificationsSubtitle,
+                            style: const TextStyle(fontSize: 13)),
+                        trailing: const Icon(Icons.chevron_right,
+                            color: Color(0xFF2E7D32)),
                         onTap: () =>
                             Navigator.pushNamed(context, '/notifications'),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
-class _DashboardGrid extends StatelessWidget {
+class _DashboardGrid extends ConsumerWidget {
   const _DashboardGrid({
     required this.tiles,
     required this.isWide,
@@ -275,9 +262,8 @@ class _DashboardGrid extends StatelessWidget {
   final bool isWide;
 
   @override
-  Widget build(BuildContext context) {
-    final userProv = Provider.of<UserProvider>(context);
-    final role = userProv.role;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(authNotifierProvider).role;
     return Semantics(
       label: 'Dashboard actions',
       child: FocusTraversalGroup(
@@ -313,39 +299,45 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: label, // Semantics label for a11y and test
+        label: label,
         button: true,
         child: Tooltip(
           message: label,
           child: Focus(
             canRequestFocus: true,
             child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: action ??
-                  () {
-                    Navigator.pushNamed(context, route!);
-                  },
+              borderRadius: BorderRadius.circular(16),
+              onTap: action ?? () => Navigator.pushNamed(context, route!),
               child: Card(
-                key: tileKey, // Attach key to Card for test targeting
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                child: Center(
+                key: tileKey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(icon,
-                          size: 56,
-                          color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(height: 16),
-                      Text(label,
-                          key: Key(
-                              'dashboard_tile_text_${label.replaceAll(' ', '_').toLowerCase()}'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
-                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Icon(icon,
+                            size: 28, color: const Color(0xFF2E7D32)),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        label,
+                        key: Key(
+                            'dashboard_tile_text_${label.replaceAll(' ', '_').toLowerCase()}'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1B5E20),
+                          height: 1.3,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -369,25 +361,25 @@ class _StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Icon(icon, size: 24, color: Colors.white),
+            const SizedBox(height: 6),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white)),
+            Text(label,
+                style: const TextStyle(fontSize: 11, color: Colors.white70)),
           ],
         ),
       ),

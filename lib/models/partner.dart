@@ -7,7 +7,6 @@ class Partner {
   String color;
   List<String> farmIds;
   String role;
-  String? farmId; // <-- add this (optional, for single-farm context)
 
   Partner({
     required this.id,
@@ -16,7 +15,6 @@ class Partner {
     required this.color,
     required this.farmIds,
     required this.role,
-    this.farmId, // <-- add this
   });
 
   factory Partner.fromDoc(DocumentSnapshot doc) {
@@ -28,7 +26,6 @@ class Partner {
       color: data['color'] ?? '',
       farmIds: List<String>.from(data['farmIds'] ?? []),
       role: data['role'] ?? 'partner',
-      farmId: data['farmId'], // <-- add this
     );
   }
 
@@ -38,6 +35,5 @@ class Partner {
         'color': color,
         'farmIds': farmIds,
         'role': role,
-        if (farmId != null) 'farmId': farmId, // <-- add this
       };
 }

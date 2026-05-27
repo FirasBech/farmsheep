@@ -25,7 +25,7 @@ class ManualLog {
       id: doc.id,
       type: data['type'],
       timestamp: (data['timestamp'] as Timestamp).toDate(),
-      animalIds: List<String>.from(data['animalRefs'] ?? []),
+      animalIds: List<String>.from(data['animalIds'] ?? []),
       notes: data['notes'] ?? '',
       performedBy: data['performedBy'],
       farmId: data['farmId'], // <-- add this
@@ -35,7 +35,7 @@ class ManualLog {
   Map<String, dynamic> toMap() => {
         'type': type,
         'timestamp': timestamp,
-        'animalRefs': animalIds ?? [],
+        'animalIds': animalIds ?? [],
         'notes': notes,
         'performedBy': performedBy,
         'farmId': farmId, // <-- add this

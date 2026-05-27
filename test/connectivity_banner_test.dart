@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:sheepfarm/main.dart';
+import 'package:sheepfarm/providers/connectivity_provider.dart';
+import 'package:sheepfarm/widgets/connectivity_banner.dart';
 
 class FakeFirestore extends Fake implements FirebaseFirestore {}
 

@@ -1,26 +1,116 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // User profiles
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Caller is listed in the farm's partnerIds array.
+    function isFarmMember(farmId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/farms/$(farmId)).data.partnerIds;
+    }
+
+    // Role stored in the user's Firestore document (set by Cloud Functions).
+    function callerRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && callerRole() == 'admin';
+    }
+
+    // ── Users ──────────────────────────────────────────────────────────────────
+    // Users can only read/write their own profile; admins can read any profile.
     match /users/{uid} {
-      allow read: if request.auth != null;
-      allow write: if request.auth.uid == uid;
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid);
     }
-    // Animals
+
+    // ── Farms ──────────────────────────────────────────────────────────────────
+    match /farms/{farmId} {
+      // Use resource.data directly instead of self-referential get() for list queries.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.partnerIds;
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasAll(['name', 'address', 'ownerId', 'partnerIds'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+      allow update: if isFarmMember(farmId) && callerRole() in ['admin', 'partner'];
+      allow delete: if isFarmMember(farmId) && isAdmin();
+    }
+
+    // ── Animals ────────────────────────────────────────────────────────────────
     match /animals/{animalId} {
-      allow read: if request.auth != null;
-      allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'partner'];
-      allow delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow read: if isSignedIn() && isFarmMember(resource.data.farmId);
+      allow create: if isSignedIn()
+        && isFarmMember(request.resource.data.farmId)
+        && request.resource.data.keys().hasAll(['earTag', 'type', 'breed', 'birthDate', 'farmId'])
+        && request.resource.data.earTag.id is int
+        && request.resource.data.earTag.id > 0;
+      allow update: if isSignedIn()
+        && isFarmMember(resource.data.farmId);
+      allow delete: if isSignedIn()
+        && isFarmMember(resource.data.farmId)
+        && isAdmin();
     }
-    // Manual action logs
+
+    // ── Manual logs ────────────────────────────────────────────────────────────
     match /manualLogs/{logId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if resource.data.performedBy == request.auth.uid;
+      allow read: if isSignedIn() && isFarmMember(resource.data.farmId);
+      allow create: if isSignedIn()
+        && isFarmMember(request.resource.data.farmId)
+        && request.resource.data.keys().hasAll(['type', 'notes', 'farmId', 'performedBy'])
+        && request.resource.data.notes.size() <= 2000;
+      // Only the author can edit/delete their own log.
+      allow update, delete: if isSignedIn()
+        && resource.data.performedBy == request.auth.uid;
     }
-    // Admin activity logs
+
+    // ── Activity logs (audit trail) ────────────────────────────────────────────
     match /activityLogs/{logId} {
-      allow read, create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow read: if isSignedIn() && isFarmMember(resource.data.farmId);
+      allow create: if isSignedIn()
+        && isFarmMember(request.resource.data.farmId);
+      allow update, delete: if false; // immutable audit trail
+    }
+
+    // ── Partners ───────────────────────────────────────────────────────────────
+    match /partners/{partnerId} {
+      // Partner can read own doc; farm members can read partners in their farm.
+      allow read: if isSignedIn() && (
+        isOwner(partnerId) ||
+        (resource.data.farmIds.size() > 0 &&
+         request.auth.uid in get(/databases/$(database)/documents/farms/$(resource.data.farmIds[0])).data.partnerIds)
+      );
+      allow write: if isSignedIn() && isAdmin();
+    }
+
+    // ── Admin audit (farm deletions etc.) ─────────────────────────────────────
+    match /adminAudit/{auditId} {
+      allow read: if isSignedIn() && isAdmin();
+      allow create, update, delete: if false; // Cloud Functions only
+    }
+
+    // ── Server config (tunnel URL etc.) ──────────────────────────────────────
+    // Public read — URL is not sensitive, needed before auth on app startup.
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if false; // written by server-side scripts only
+    }
+
+    // ── AI rate limiting ───────────────────────────────────────────────────────
+    match /aiRateLimit/{uid} {
+      allow read: if false;  // Cloud Functions only
+      allow write: if false; // Cloud Functions only
     }
   }
 }

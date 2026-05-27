@@ -2,48 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sheepfarm/services/database_service.dart';
-import 'package:firebase_storage/firebase_storage.dart' as storage;
-import 'dart:io';
-
-// Minimal fake Reference for Storage
-class FakeReference implements storage.Reference {
-  @override
-  Future<String> getDownloadURL() async => 'http://fakeurl';
-  @override
-  storage.Reference child(String path) => this;
-  @override
-  storage.UploadTask putFile(File file, [storage.SettableMetadata? metadata]) =>
-      FakeUploadTask();
-  // ...implement all other members as no-op or throw UnimplementedError...
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeUploadTask implements storage.UploadTask {
-  // ...implement all members as no-op or throw UnimplementedError...
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeFirebaseStorage implements storage.FirebaseStorage {
-  @override
-  storage.Reference ref([String? path]) => FakeReference();
-  // ...implement all other members as no-op or throw UnimplementedError...
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 void main() {
   group('DatabaseService.createAnimal', () {
     late FakeFirebaseFirestore firestore;
-    late FakeFirebaseStorage storage;
     late DatabaseService service;
 
     setUp(() {
       firestore = FakeFirebaseFirestore();
-      storage = FakeFirebaseStorage();
-      service = DatabaseService(
-          firestore: firestore as dynamic, storage: storage as dynamic);
+      service = DatabaseService(firestore: firestore as dynamic);
     });
 
     test('adds a new animal document when no duplicate exists', () async {
@@ -65,7 +32,6 @@ void main() {
     });
 
     test('throws exception when duplicate tagId exists', () async {
-      // Pre-add a document with tagId 200
       await firestore.collection('animals').add({
         'earTag': {'id': 200, 'color': '0xFF000000'},
         'type': 'goat',
@@ -80,7 +46,6 @@ void main() {
 
       expect(
         () async {
-          // Check for duplicate before adding
           final snapshot = await firestore.collection('animals').get();
           final duplicate = snapshot.docs.any((doc) =>
               doc.data()['earTag']['id'] == 200 &&

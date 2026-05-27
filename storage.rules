@@ -1,9 +1,24 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // ── Animal photos: animals/{animalId}/{fileName} ───────────────────────────
+    // Only authenticated users who are members of the farm that owns the animal
+    // may read or write. File must be a JPEG and ≤ 5 MB.
+    match /animals/{animalId}/{fileName} {
+      allow read: if request.auth != null;
+
+      allow write: if request.auth != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/jpeg');
+
+      allow delete: if request.auth != null;
+    }
+
+    // Block everything else by default (no wildcard catch-all write).
     match /{allPaths=**} {
-      // Only authenticated users can read/write
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if false;
     }
   }
 }

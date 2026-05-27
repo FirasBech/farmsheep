@@ -49,7 +49,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('SheepFarm Login'), findsOneWidget);
+    expect(find.text('FarmSheep'), findsOneWidget);
   });
 
   testWidgets('AuthWrapper shows HomeScreen when user is present',

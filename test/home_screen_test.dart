@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as rv;
 import 'package:provider/provider.dart';
 import 'package:sheepfarm/providers/user_provider.dart';
 import 'package:sheepfarm/screens/home_screen.dart';
@@ -13,6 +14,9 @@ import 'package:sheepfarm/models/partner.dart';
 import 'package:sheepfarm/models/manual_log.dart';
 import 'package:sheepfarm/services/offline_sync_service.dart';
 import 'package:sheepfarm/services/notification_service.dart';
+import 'package:sheepfarm/features/farm/presentation/providers/farm_notifier.dart';
+import 'package:sheepfarm/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:sheepfarm/features/notification/presentation/providers/notification_notifier.dart';
 
 void _initTestEnv() {
   NotificationService.skipInitForTests = true;
@@ -26,7 +30,7 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
   @override
   Future<void> loadUserRole() async {}
   @override
-  String get displayName => 'Test User'; // Add if required
+  String get displayName => 'Test User';
 }
 
 class FakeAuthService extends Fake implements AuthService {
@@ -39,13 +43,14 @@ class FakeAuthService extends Fake implements AuthService {
 class FakeUser extends Fake implements User {
   @override
   String get email => 'test@example.com';
+  @override
+  String get uid => 'test-uid';
 }
 
 class FakeDatabaseService extends Fake implements DatabaseService {
   @override
-  Stream<List<Animal>> streamAnimals({required String farmId}) => Stream.value([
-        // Provide at least one animal to trigger dashboard rendering
-        // Use a minimal Animal with required fields
+  Stream<List<Animal>> streamAnimals({required String farmId}) =>
+      Stream.value([
         Animal(
           id: '1',
           tagNumber: 1,
@@ -65,7 +70,6 @@ class FakeDatabaseService extends Fake implements DatabaseService {
           color: '#FF0000',
           farmIds: [farmId],
           role: 'owner',
-          farmId: farmId,
         ),
       ];
   @override
@@ -80,25 +84,25 @@ class FakeDatabaseService extends Fake implements DatabaseService {
           farmId: farmId,
         ),
       ]);
-  // Add similar stubs for logs, partners, etc. if needed by HomeScreen
 }
 
 class TestFarmProvider extends ChangeNotifier implements FarmProvider {
+  static final _farm = Farm(
+    id: 'farm1',
+    name: 'Test Farm',
+    address: '123 Test St',
+    ownerId: 'user1',
+    partnerIds: const [],
+    createdAt: DateTime(2024, 1, 1),
+    archived: false,
+    preferredBreeds: const [],
+    color: 0xFF388E3C,
+    partnerPermissions: const {},
+  );
   @override
-  Farm? get selectedFarm => Farm(
-        id: 'farm1',
-        name: 'Test Farm',
-        address: '123 Test St',
-        ownerId: 'user1',
-        partnerIds: const [],
-        createdAt: DateTime(2024, 1, 1),
-        archived: false,
-        preferredBreeds: const [],
-        color: 0xFF388E3C,
-        partnerPermissions: const {},
-      );
+  Farm? get selectedFarm => _farm;
   @override
-  List<Farm> get farms => [selectedFarm!];
+  List<Farm> get farms => [_farm];
   @override
   List<Farm> get archivedFarms => [];
   @override
@@ -119,34 +123,78 @@ class TestFarmProvider extends ChangeNotifier implements FarmProvider {
   FakeDatabaseService get db => FakeDatabaseService();
 }
 
+// Riverpod fake notifiers ──────────────────────────────────────────────────────
+
+class _FakeFarmNotifier extends FarmNotifier {
+  @override
+  FarmState build() => FarmState(
+        farms: [TestFarmProvider._farm],
+        selectedFarm: TestFarmProvider._farm,
+      );
+
+  @override
+  Future<void> loadFarms(String userId) async {}
+}
+
+class _FakeAuthNotifier extends AuthNotifier {
+  @override
+  AuthState build() => const AuthState(role: 'admin', roleLoaded: true);
+
+  @override
+  Future<void> loadRole() async {}
+}
+
+class _FakeNotificationNotifier extends NotificationNotifier {
+  @override
+  NotificationState build() => const NotificationState(
+        notificationsEnabled: false,
+        dailySummary: false,
+        scheduled: [],
+        loaded: true,
+      );
+
+  @override
+  Future<void> show({required String title, required String body}) async {}
+}
+
 void main() {
   _initTestEnv();
   testWidgets('HomeScreen shows dashboard and admin tiles',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider<AuthService>.value(value: FakeAuthService()),
-          Provider<DatabaseService>.value(value: FakeDatabaseService()),
-          ChangeNotifierProvider<UserProvider>.value(value: FakeUserProvider()),
-          ChangeNotifierProvider<FarmProvider>.value(value: TestFarmProvider()),
-          ChangeNotifierProvider<OfflineSyncService>.value(
-              value: FakeOfflineSyncService()),
+      rv.ProviderScope(
+        overrides: [
+          farmNotifierProvider.overrideWith(() => _FakeFarmNotifier()),
+          authNotifierProvider.overrideWith(() => _FakeAuthNotifier()),
+          notificationNotifierProvider
+              .overrideWith(() => _FakeNotificationNotifier()),
         ],
-        child: MaterialApp(
-          home: const HomeScreen(),
-          onGenerateRoute: (settings) {
-            if (settings.name == '/farms') {
-              return MaterialPageRoute(
-                  builder: (_) => const Scaffold(body: Text('Farms Page')));
-            }
-            return null;
-          },
+        child: MultiProvider(
+          providers: [
+            Provider<AuthService>.value(value: FakeAuthService()),
+            Provider<DatabaseService>.value(value: FakeDatabaseService()),
+            ChangeNotifierProvider<UserProvider>.value(
+                value: FakeUserProvider()),
+            ChangeNotifierProvider<FarmProvider>.value(
+                value: TestFarmProvider()),
+            ChangeNotifierProvider<OfflineSyncService>.value(
+                value: FakeOfflineSyncService()),
+          ],
+          child: MaterialApp(
+            home: const HomeScreen(),
+            onGenerateRoute: (settings) {
+              if (settings.name == '/farms') {
+                return MaterialPageRoute(
+                    builder: (_) =>
+                        const Scaffold(body: Text('Farms Page')));
+              }
+              return null;
+            },
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
-    // Debug: print all dashboard tile text keys found
     final dashboardTileTextKeys = [
       'dashboard_tile_text_animals',
       'dashboard_tile_text_logs',
@@ -165,7 +213,6 @@ void main() {
       // ignore: avoid_print
       print('DEBUG: Found $count widgets with key $key');
     }
-    // Print all tile labels for further debugging
     final allTextWidgets = find.byType(Text).evaluate().toList();
     for (final w in allTextWidgets) {
       final widget = w.widget;
@@ -174,10 +221,8 @@ void main() {
         print('DEBUG: Text widget: "${widget.data}"');
       }
     }
-    // Use key-based finder for dashboard tile (e.g., 'dashboard_farm_dashboard_tile')
     expect(
         find.byKey(const Key('dashboard_farm_dashboard_tile')), findsOneWidget);
-    // Use key-based finder for Animals and Logs tile text to avoid duplicate text error
     expect(
         find.byKey(const Key('dashboard_tile_text_animals')), findsOneWidget);
     expect(find.byKey(const Key('dashboard_tile_text_logs')), findsOneWidget);

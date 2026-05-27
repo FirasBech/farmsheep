@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sheepfarm/models/animal.dart';
 import 'package:sheepfarm/models/farm.dart';
 import 'package:sheepfarm/providers/farm_provider.dart';
 import 'package:sheepfarm/services/database_service.dart';
@@ -38,6 +39,10 @@ class _FakeDatabaseService implements DatabaseService {
 
   @override
   Stream<List<Farm>> streamFarms({required String userId}) => _ctrl.stream;
+
+  @override
+  Stream<List<Animal>> streamAnimals({required String farmId}) =>
+      Stream.value([]);
 
   // Unused methods throw
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -1,7 +1,7 @@
 // test/offline_sync_service_test.dart
 // Unit test for offline/online sync and error state handling in ConnectivityStatus.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sheepfarm/main.dart';
+import 'package:sheepfarm/providers/connectivity_provider.dart';
 
 void main() {
   setUpAll(() {

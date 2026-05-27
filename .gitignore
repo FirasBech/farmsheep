@@ -42,3 +42,23 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 functions/node_modules/
+
+# Android signing — never commit these
+android/key.properties
+*.keystore
+*.jks
+
+# Test coverage output
+coverage/
+lcov.info
+
+# Self-hosted server — secrets and runtime data
+server/.env
+server/firebase-service-account.json
+server/*firebase-adminsdk*.json
+server/node_modules/
+server/uploads/
+server/cloudflared.exe
+
+# Flutter server config — contains local IP and secret
+lib/config.dart

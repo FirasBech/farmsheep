@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -9,8 +10,20 @@ class NotificationService {
   static Future<void> init() async {
     if (skipInitForTests) return;
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const settings = InitializationSettings(android: android);
+    const ios = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    const settings = InitializationSettings(android: android, iOS: ios);
     await _notifications.initialize(settings);
+    // Request POST_NOTIFICATIONS permission on Android 13+.
+    if (Platform.isAndroid) {
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
   }
 
   static Future<void> showNotification({
@@ -26,7 +39,8 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
-    const details = NotificationDetails(android: android);
+    const ios = DarwinNotificationDetails();
+    const details = NotificationDetails(android: android, iOS: ios);
     await _notifications.show(id, title, body, details);
   }
 
@@ -43,7 +57,8 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
     );
-    final details = NotificationDetails(android: android);
+    const ios = DarwinNotificationDetails();
+    const details = NotificationDetails(android: android, iOS: ios);
     tz.initializeTimeZones();
     await _notifications.zonedSchedule(
       id,

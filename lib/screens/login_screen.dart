@@ -1,161 +1,204 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
-import '../providers/user_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/utils/l10n_extension.dart';
+import '../features/auth/presentation/providers/auth_notifier.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _obscurePassword = true;
 
-  void _login() async {
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
     setState(() => _loading = true);
     try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      await authService.signIn(
-          email: _emailController.text, password: _passwordController.text);
-      await Provider.of<UserProvider>(context, listen: false).loadUserRole();
-      // Navigate to HomeScreen directly
+      await ref.read(authNotifierProvider.notifier).signIn(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      // Accessibility: Announce error for screen readers
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login failed: $e'),
-        ),
+        SnackBar(content: Text(context.l10n.loginFailed(e.toString()))),
       );
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.enterEmailFirst)),
+      );
+      return;
+    }
+    try {
+      await ref
+          .read(authNotifierProvider.notifier)
+          .sendPasswordResetEmail(email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.passwordResetSent)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.failed(e.toString()))),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Center(
-            child: SingleChildScrollView(
-              child: FocusTraversalGroup(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Tooltip(
-                      message: 'SheepFarm login icon',
-                      child: Semantics(
-                        label:
-                            'SheepFarm Login Icon', // Changed from 'SheepFarm Login' to avoid duplicate semantics
-                        child: Icon(Icons.pets,
-                            size: 80,
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text('SheepFarm Login',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                                fontWeight: FontWeight.bold, fontSize: 32)),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(fontSize: 20)),
-                      style: const TextStyle(fontSize: 22),
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.username],
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(fontSize: 20)),
-                      obscureText: true,
-                      style: const TextStyle(fontSize: 22),
-                      autofillHints: const [AutofillHints.password],
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _login(),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: Tooltip(
-                        message: 'Login',
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.login, size: 32),
-                          label: _loading
-                              ? Semantics(
-                                  label: 'Logging in',
-                                  child: const SizedBox(
-                                      width: 28,
-                                      height: 28,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 3)))
-                              : const Text('Login', style: TextStyle(fontSize: 22)),
-                          onPressed: _loading ? null : _login,
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(180, 56)),
+        backgroundColor: const Color(0xFF2E7D32),
+        body: Column(
+          children: [
+            Expanded(
+              flex: 2,
+              child: SafeArea(
+                bottom: false,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          shape: BoxShape.circle,
                         ),
+                        child: const Icon(Icons.grass,
+                            size: 52, color: Colors.white),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => Navigator.pushReplacementNamed(
-                              context, '/register'),
-                      child: const Text('Don\'t have an account? Register'),
-                    ),
-                    TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () async {
-                              final email = _emailController.text.trim();
-                              if (email.isEmpty || !email.contains('@')) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Enter a valid email to reset password'),
-                                  ),
-                                );
-                                return;
-                              }
-                              try {
-                                await Provider.of<AuthService>(context,
-                                        listen: false)
-                                    .sendPasswordResetEmail(email);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Password reset email sent!'),
-                                  ),
-                                );
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text('Failed to send reset email: $e'),
-                                  ),
-                                );
-                              }
-                            },
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(context.l10n.appTitle,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5)),
+                      const SizedBox(height: 4),
+                      Text(context.l10n.smartFarmManagement,
+                          style:
+                              const TextStyle(color: Colors.white70, fontSize: 14)),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(context.l10n.welcomeBack,
+                          style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20))),
+                      const SizedBox(height: 4),
+                      Text(context.l10n.signInToFarmAccount,
+                          style:
+                              const TextStyle(color: Colors.grey, fontSize: 14)),
+                      const SizedBox(height: 28),
+                      TextField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.emailLabel,
+                          prefixIcon: const Icon(Icons.email_outlined),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.username],
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.passwordLabel,
+                          prefixIcon: const Icon(Icons.lock_outlined),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                        obscureText: _obscurePassword,
+                        autofillHints: const [AutofillHints.password],
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _login(),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _loading ? null : _forgotPassword,
+                          child: Text(context.l10n.forgotPassword),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _login,
+                          child: _loading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
+                              : Text(context.l10n.signInButton),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(context.l10n.dontHaveAccount,
+                              style: const TextStyle(color: Colors.grey)),
+                          TextButton(
+                            onPressed: _loading
+                                ? null
+                                : () => Navigator.pushReplacementNamed(
+                                    context, '/register'),
+                            child: Text(context.l10n.registerButton),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
 }

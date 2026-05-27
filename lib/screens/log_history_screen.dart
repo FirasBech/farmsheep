@@ -1,59 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/database_service.dart';
-import '../models/manual_log.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../features/farm/presentation/providers/farm_notifier.dart';
+import '../features/log/presentation/providers/log_provider.dart';
 import 'add_manual_log_screen.dart';
-import '../providers/farm_provider.dart';
+import '../core/utils/l10n_extension.dart';
 
-class LogHistoryScreen extends StatelessWidget {
+class LogHistoryScreen extends ConsumerWidget {
   const LogHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final db = Provider.of<DatabaseService>(context, listen: false);
-    final farmProv = Provider.of<FarmProvider>(context);
-    final farmId = farmProv.selectedFarm?.id;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final farmId = ref.watch(farmNotifierProvider).selectedFarm?.id;
     if (farmId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Manual Logs')),
-        body: const Center(child: Text('No farm selected.')),
+        appBar: AppBar(title: Text(l10n.manualLogsTitle)),
+        body: Center(child: Text(l10n.noFarmSelected)),
       );
     }
+    final logsAsync = ref.watch(logsStreamProvider(farmId));
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Manual Logs',
-          key: Key('logs_screen_title'),
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.manualLogsTitle,
+          key: const Key('logs_screen_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: StreamBuilder<List<ManualLog>>(
-        stream: db.streamManualLogs(farmId: farmId),
-        builder: (context, snapshot) {
-          print(
-              'DEBUG: LogHistoryScreen StreamBuilder snapshot.hasData = \\${snapshot.hasData}, logs = \\${snapshot.data?.length}');
-          if (!snapshot.hasData) {
-            return Center(
-              child: Semantics(
-                label: 'Loading manual logs',
-                child: const CircularProgressIndicator(),
-              ),
-            );
-          }
-          final logs = snapshot.data!;
+      body: logsAsync.when(
+        loading: () => Center(
+          child: Semantics(
+            label: 'Loading manual logs',
+            child: const CircularProgressIndicator(),
+          ),
+        ),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (logs) {
           if (logs.isEmpty) {
-            print('DEBUG: LogHistoryScreen empty state shown');
             return Center(
               child: Semantics(
                 label: 'No manual logs found',
-                child: const Text(
-                  'No logs found.',
-                  style: TextStyle(fontSize: 22),
-                ),
+                child: Text(l10n.noLogsFound),
               ),
             );
           }
-          print('DEBUG: LogHistoryScreen showing \\${logs.length} logs');
           return Semantics(
             label: 'Manual log history list',
             child: FocusTraversalGroup(
@@ -64,7 +54,7 @@ class LogHistoryScreen extends StatelessWidget {
                   final log = logs[index];
                   return Semantics(
                     label:
-                        'Log entry: \\${log.type}, performed by \\${log.performedBy}',
+                        'Log entry: ${log.type}, performed by ${log.performedBy}',
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       elevation: 3,
@@ -78,34 +68,25 @@ class LogHistoryScreen extends StatelessWidget {
                               color: Theme.of(context).colorScheme.primary),
                         ),
                         title: Text(log.type,
-                            style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 4),
-                            Text(
-                              'At: \\${log.timestamp.toLocal()}',
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                            Text('At: ${log.timestamp.toLocal()}'),
                             if (log.animalIds != null &&
                                 log.animalIds!.isNotEmpty)
-                              Text(
-                                'Animals: \\${log.animalIds!.join(', ')}',
-                                style: const TextStyle(fontSize: 16),
-                              ),
+                              Text('Animals: ${log.animalIds!.join(', ')}'),
                             if (log.notes.isNotEmpty)
-                              Text(
-                                'Notes: \\${log.notes}',
-                                style: const TextStyle(fontSize: 16),
-                              ),
+                              Text('Notes: ${log.notes}'),
                           ],
                         ),
                         trailing: Text(log.performedBy,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 20),
                       ),
                     ),
                   );
@@ -115,25 +96,18 @@ class LogHistoryScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: Builder(
-        builder: (context) {
-          print(
-              'DEBUG: LogHistoryScreen FAB built, context: \\${context.widget.runtimeType}');
-          return Semantics(
-            label: 'Add a new log',
-            child: FloatingActionButton(
-              key: const Key('add_log_fab'),
-              onPressed: () {
-                print('DEBUG: Add Log FAB pressed');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddManualLogScreen()),
-                );
-              },
-              child: const Icon(Icons.add),
-            ),
-          );
-        },
+      floatingActionButton: Semantics(
+        label: 'Add a new log',
+        child: FloatingActionButton(
+          key: const Key('add_log_fab'),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddManualLogScreen()),
+            );
+          },
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }

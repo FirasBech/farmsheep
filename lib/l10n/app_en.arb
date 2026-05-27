@@ -1,0 +1,485 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "FarmSheep",
+  "smartFarmManagement": "Smart Farm Management",
+  "cancelButton": "Cancel",
+  "saveButton": "Save",
+  "deleteButton": "Delete",
+  "doneButton": "Done",
+  "addButton": "Add",
+  "closeButton": "Close",
+  "removeButton": "Remove",
+  "editMenuItem": "Edit",
+  "refreshTooltip": "Refresh",
+  "noFarmSelected": "No farm selected.",
+  "nameLabel": "Name",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "notesLabel": "Notes",
+  "typeLabel": "Type",
+  "dateLabel": "Date",
+  "priceLabel": "Price",
+  "roleLabel": "Role",
+  "sourceLabel": "Source",
+  "requiredValidation": "Required",
+  "makeAdminMenuItem": "Make Admin",
+  "makePartnerMenuItem": "Make Partner",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+
+  "welcomeBack": "Welcome Back",
+  "signInToFarmAccount": "Sign in to your farm account",
+  "forgotPassword": "Forgot Password?",
+  "signInButton": "Sign In",
+  "dontHaveAccount": "Don't have an account?",
+  "registerButton": "Register",
+  "loginFailed": "Login failed: {error}",
+  "@loginFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "enterEmailFirst": "Enter your email above first",
+  "passwordResetSent": "Password reset email sent!",
+  "failed": "Failed: {error}",
+  "@failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "createAccount": "Create Account",
+  "joinFarmSheepToday": "Join FarmSheep today",
+  "fullNameLabel": "Full Name",
+  "enterYourName": "Enter your name",
+  "confirmPasswordLabel": "Confirm Password",
+  "confirmNewPasswordLabel": "Confirm New Password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "accountCreated": "Account created! Check your email to verify.",
+  "alreadyHaveAccount": "Already have an account?",
+  "passwordWeak": "Weak",
+  "passwordMedium": "Medium",
+  "passwordStrong": "Strong",
+
+  "notificationsTooltip": "Notifications",
+  "profileTooltip": "Profile",
+  "welcomeNotificationTitle": "Welcome",
+  "welcomeNotificationBody": "Check your animals and logs for today!",
+  "tileAnimals": "Animals",
+  "tileFarmDashboard": "Farm Dashboard",
+  "tileLogs": "Logs",
+  "tileBreedManagement": "Breed Management",
+  "tileAddPartner": "Add Partner",
+  "tileAdminLogs": "Admin Logs",
+  "tileUserManagement": "User Management",
+  "tileAdminOverride": "Admin Override",
+  "tileAnimalSearchExport": "Animal Search & Export",
+  "tileLogSearchExport": "Log Search & Export",
+  "tileLogout": "Logout",
+  "alertsNotificationsTitle": "Alerts & Notifications",
+  "alertsNotificationsSubtitle": "View and manage farm notifications",
+  "statAnimals": "Animals",
+  "statPartners": "Partners",
+  "statLogs": "Logs",
+
+  "animalsScreenTitle": "Animals",
+  "exportCsvTooltip": "Export CSV",
+  "addAnimalTooltip": "Add Animal",
+  "searchByTagIdLabel": "Search by Tag ID",
+  "searchByTagIdHint": "Enter tag number...",
+  "allTypesHint": "All Types",
+  "allStatusesHint": "All Statuses",
+  "noAnimalsFound": "No animals found",
+  "tryAdjustingFilters": "Try adjusting your search filters",
+  "addFirstAnimal": "Add your first animal to get started!",
+
+  "askAiTooltip": "Ask AI",
+  "exportPdfTooltip": "Export PDF",
+  "deleteAnimalDialogTitle": "Delete Animal",
+  "deleteAnimalDialogContent": "Are you sure you want to delete this animal?",
+  "pdfFailed": "PDF failed: {error}",
+  "@pdfFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "tagNumberLabel": "Tag Number",
+  "bornLabel": "Born",
+  "ageLabel": "Age",
+  "tagColorLabel": "Tag Color",
+  "physicalSectionHeader": "Physical",
+  "sexLabel": "Sex",
+  "weightLabel": "Weight",
+  "bcsLabel": "Body Condition Score",
+  "microchipLabel": "Microchip",
+  "originSectionHeader": "Origin",
+  "acquiredLabel": "Acquired",
+  "purchaseDateLabel": "Purchase Date",
+  "lineageSectionHeader": "Lineage",
+  "sireFatherLabel": "Sire (Father)",
+  "sireIdLabel": "Sire ID",
+  "damMotherLabel": "Dam (Mother)",
+  "damIdLabel": "Dam ID",
+  "notesSectionHeader": "Notes",
+  "pregnancyHistoryHeader": "Pregnancy History",
+  "birthLogHeader": "Birth Log",
+  "healthLogsHeader": "Health Logs",
+  "saleInfoHeader": "Sale Info",
+  "buyerLabel": "Buyer",
+  "aiHealthRiskAssessmentTitle": "AI Health Risk Assessment",
+  "aiRiskAssessmentButton": "AI Risk Assessment",
+  "analyzingLabel": "Analyzing...",
+  "stillWorkingLabel": "Still working...",
+
+  "addAnimalScreenTitle": "Add Animal",
+  "editAnimalScreenTitle": "Edit Animal",
+  "identificationSection": "Identification",
+  "tagNumberFieldLabel": "Tag Number *",
+  "tagNumberFieldHint": "Enter unique ear tag number",
+  "tagColorTileTitle": "Tag Color",
+  "pickTagColorDialogTitle": "Pick Tag Color",
+  "microchipRfidLabel": "Microchip / RFID",
+  "microchipRfidHint": "Optional electronic ID",
+  "animalDetailsSection": "Animal Details",
+  "breedLabel": "Breed",
+  "breedHint": "Select breed",
+  "pickBirthDate": "Pick birth date *",
+  "birthDatePrefix": "Birth Date: ",
+  "originSection": "Origin",
+  "acquisitionTypeLabel": "Acquisition Type",
+  "howWasAnimalAcquired": "How was this animal acquired?",
+  "typeSheep": "Sheep",
+  "typeGoat": "Goat",
+  "sexFemale": "Female",
+  "sexMale": "Male",
+  "sexWether": "Wether",
+  "sexUnknown": "Unknown",
+  "acquisitionBornOnFarm": "Born on Farm",
+  "acquisitionPurchased": "Purchased",
+  "acquisitionGifted": "Gifted",
+  "purchaseSourceLabel": "Purchase Source",
+  "purchaseSourceHint": "Seller / Market name",
+  "purchasePriceLabel": "Purchase Price",
+  "purchasePriceHint": "Amount paid",
+  "purchaseDateTile": "Purchase Date",
+  "purchasedDatePrefix": "Purchased: ",
+  "lineageSection": "Lineage",
+  "sireTagNameLabel": "Sire Tag / Name",
+  "sireTagNameHint": "Father",
+  "sireIdHint": "Optional",
+  "damTagNameLabel": "Dam Tag / Name",
+  "damTagNameHint": "Mother",
+  "damIdHint": "Optional",
+  "physicalSection": "Physical",
+  "currentWeightLabel": "Current Weight (kg)",
+  "currentWeightHint": "e.g. 45.5",
+  "bodyConditionScoreLabel": "Body Condition Score (BCS)",
+  "notesSection": "Notes",
+  "notesHint": "Any additional observations",
+  "photosSection": "Photos",
+  "cameraButton": "Camera",
+  "galleryButton": "Gallery",
+  "saveAnimalButton": "Save Animal",
+  "saveChangesButton": "Save Changes",
+  "cropImageTitle": "Crop Image",
+  "birthDateRequired": "Birth date is required.",
+  "tagNumberMustBePositive": "Tag number must be a positive integer.",
+  "couldNotPickImage": "Could not pick image: {error}",
+  "@couldNotPickImage": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "errorSavingAnimal": "Error saving animal: {error}",
+  "@errorSavingAnimal": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "errorUpdatingAnimal": "Error updating animal: {error}",
+  "@errorUpdatingAnimal": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "animalSearchExportTitle": "Animal Search & Export",
+  "searchByTagOrBreed": "Search by tag or breed",
+
+  "yourFarmsTitle": "Your Farms",
+  "viewArchivedFarms": "View Archived Farms",
+  "noFarmsFound": "No farms found",
+  "addFirstFarm": "Add your first farm to get started!",
+  "archiveFarmTitle": "Archive Farm",
+  "archiveFarmConfirm": "Are you sure you want to archive this farm? You can restore it later.",
+  "archiveButton": "Archive",
+  "deleteFarmTitle": "Delete Farm",
+  "deleteFarmConfirm": "Are you sure you want to delete this farm? All animals and logs will be permanently deleted.",
+  "farmArchived": "Farm archived.",
+  "farmDeleted": "Farm deleted.",
+  "addFarmFab": "Add Farm",
+  "addNewFarmDialogTitle": "Add New Farm",
+  "farmNameLabel": "Farm Name",
+  "farmNameHint": "Enter farm name",
+  "farmNameRequired": "Please enter a farm name",
+  "addressLabel": "Address",
+  "addressHint": "Enter farm address",
+  "addressRequired": "Please enter a farm address",
+  "notesOptionalLabel": "Notes (Optional)",
+  "additionalFarmInfo": "Additional farm information",
+  "farmAddedSuccessfully": "Farm added successfully!",
+  "errorAddingFarm": "Error adding farm: {error}",
+  "@errorAddingFarm": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "farmDashboardTitle": "Farm Dashboard",
+  "farmSettingsTooltip": "Farm Settings",
+  "aiHerdSummaryTitle": "AI Herd Summary",
+  "aiHerdSummaryGenerateTap": "Tap \"Generate\" to get an AI overview of your herd.",
+  "generatingLabel": "Generating...",
+  "refreshSummaryButton": "Refresh Summary",
+  "generateAiSummaryButton": "Generate AI Summary",
+  "tileFarmActivity": "Farm Activity",
+  "tileProfileUsers": "Profile / Users",
+
+  "farmSettingsTitle": "Farm Settings",
+  "notesSectionTitle": "Notes",
+  "preferredBreedsSectionTitle": "Preferred Breeds",
+  "preferredBreedsHint": "Damani, Dimashqi, Mixed...",
+  "preferredBreedsHelper": "Comma-separated breed names",
+  "farmColorSectionTitle": "Farm Color",
+  "currentColorLabel": "Current color:",
+  "pickFarmColorDialogTitle": "Pick Farm Color",
+  "tapToChange": "Tap to change",
+  "partnerPermissionsSectionTitle": "Partner Permissions",
+  "allowPartnersAddAnimalsTitle": "Allow partners to add animals",
+  "allowPartnersAddAnimalsSubtitle": "Partners can add new animals to the farm",
+  "allowPartnersEditLogsTitle": "Allow partners to edit logs",
+  "allowPartnersEditLogsSubtitle": "Partners can create and edit manual logs",
+  "saveSettingsButton": "Save Settings",
+  "farmSettingsUpdated": "Farm settings updated.",
+
+  "addManualLogTitle": "Add Manual Log",
+  "logDetailsSectionTitle": "Log Details",
+  "actionTypeLabel": "Action Type",
+  "animalIdsLabel": "Animal IDs (comma-separated)",
+  "getAiSuggestionButton": "Get AI Suggestion",
+  "gettingSuggestion": "Getting suggestion...",
+  "saveManualLogTooltip": "Save manual log",
+  "addAnimalsFirst": "Add animals to the farm first.",
+  "aiSuggestionApplied": "AI suggestion applied!",
+  "aiSuggestionFailed": "AI suggestion failed: {error}",
+  "@aiSuggestionFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "userNotSignedIn": "User not signed in",
+  "errorSaving": "Error: {error}",
+  "@errorSaving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "actionFeeding": "Feeding",
+  "actionDeworming": "Deworming",
+  "actionCleaning": "Cleaning",
+  "actionVaccination": "Vaccination",
+  "actionMedication": "Medication",
+  "actionTreatment": "Treatment",
+  "actionHealthCheck": "Health Check",
+  "actionObservation": "Observation",
+  "actionOther": "Other",
+
+  "manualLogsTitle": "Manual Logs",
+  "noLogsFound": "No logs found.",
+  "logSearchExportTitle": "Log Search & Export",
+  "searchByTypeOrNotes": "Search by type or notes",
+  "dateRangeButton": "Date Range",
+  "auditTrailHeader": "Audit Trail (Admin Only)",
+
+  "farmActivityLogTitle": "Farm Activity Log",
+  "noActivityYet": "No activity yet",
+  "farmActionsWillAppear": "Farm actions will appear here.",
+  "activityLogsTitle": "Activity Logs",
+  "accessDenied": "Access Denied",
+  "noActivityLogsFound": "No activity logs found.",
+
+  "adminRecordOverrideTitle": "Admin Record Override",
+  "adminAccessRequired": "Admin access required",
+  "searchAnimalsByTagOrBreed": "Search animals by tag or breed",
+  "overrideThisRecord": "Override this record",
+  "recentOverridesHeader": "Recent Overrides",
+  "noOverridesRecorded": "No overrides recorded yet.",
+  "overrideAnimalDialogTitle": "Override Animal #{tagNumber}",
+  "@overrideAnimalDialogTitle": {
+    "placeholders": {
+      "tagNumber": {"type": "String"}
+    }
+  },
+  "reasonForOverrideLabel": "Reason for Override *",
+  "reasonForOverrideHint": "Explain why this record is being changed",
+  "reasonRequiredValidation": "A reason is required for admin overrides",
+  "saveOverrideButton": "Save Override",
+  "overrideSaved": "Override saved and logged in audit trail.",
+
+  "userManagementTitle": "User Management",
+  "noUsersFound": "No users found",
+  "resetPasswordMenuItem": "Reset Password",
+  "passwordResetEmailSent": "Password reset email sent.",
+  "roleUpdatedTo": "Role updated to {role}.",
+  "@roleUpdatedTo": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+
+  "breedManagementTitle": "Breed Management",
+  "addBreedSectionTitle": "Add Breed",
+  "enterBreedName": "Enter breed name",
+  "noBreedsAdded": "No breeds added.",
+  "removeBreedTooltip": "Remove breed",
+  "aiRecommendFab": "AI Recommend",
+  "aiBreedRecommendationTitle": "AI Breed Recommendation",
+  "climateLabel": "Climate",
+  "purposeLabel": "Purpose",
+  "additionalPreferencesLabel": "Additional Preferences (optional)",
+  "additionalPreferencesHint": "e.g. hardy, low maintenance, good mothers",
+  "consultingAiSpecialist": "Consulting AI breed specialist...",
+  "getRecommendationsButton": "Get Recommendations",
+  "askAgainButton": "Ask Again",
+  "climateArid": "Arid",
+  "climateTemperate": "Temperate",
+  "climateTropical": "Tropical",
+  "climateCold": "Cold",
+  "climateSemiArid": "Semi-arid",
+  "purposeMeat": "Meat",
+  "purposeMilk": "Milk",
+  "purposeWool": "Wool",
+  "purposeMixed": "Mixed",
+
+  "notificationsTitle": "Notifications",
+  "settingsSectionTitle": "Settings",
+  "enableNotificationsTitle": "Enable Notifications",
+  "enableNotificationsSubtitle": "Receive reminders and alerts",
+  "dailySummaryTitle": "Daily Summary",
+  "dailySummarySubtitle": "Get a daily herd overview",
+  "scheduleReminderSectionTitle": "Schedule a Reminder",
+  "notificationTitleLabel": "Title",
+  "notificationTitleValidation": "Enter a title",
+  "notificationMessageLabel": "Message",
+  "notificationMessageValidation": "Enter a message",
+  "pickTimeLabel": "Pick time",
+  "scheduleNotificationButton": "Schedule Notification",
+  "scheduledSectionTitle": "Scheduled",
+  "noScheduledNotifications": "No scheduled notifications.",
+  "cancelNotificationTooltip": "Cancel",
+  "pleasePickTime": "Please pick a time.",
+  "notificationScheduled": "Notification scheduled.",
+
+  "archivedFarmsTitle": "Archived Farms",
+  "noArchivedFarms": "No archived farms",
+  "farmsYouArchiveWillAppear": "Farms you archive will appear here.",
+  "restoreFarmTooltip": "Restore farm",
+  "deletePermanentlyTooltip": "Delete permanently",
+  "deleteFarmPermanentlyTitle": "Delete Farm Permanently",
+  "deleteFarmPermanentlyContent": "Delete \"{farmName}\" and all its animals and logs? This cannot be undone.",
+  "@deleteFarmPermanentlyContent": {
+    "placeholders": {
+      "farmName": {"type": "String"}
+    }
+  },
+  "farmRestored": "{farmName} restored.",
+  "@farmRestored": {
+    "placeholders": {
+      "farmName": {"type": "String"}
+    }
+  },
+  "farmPermanentlyDeleted": "{farmName} permanently deleted.",
+  "@farmPermanentlyDeleted": {
+    "placeholders": {
+      "farmName": {"type": "String"}
+    }
+  },
+  "errorDeletingFarm": "Error deleting farm: {error}",
+  "@errorDeletingFarm": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "partnersTitle": "Partners",
+  "noPartnersYet": "No partners yet",
+  "addPartnerToShare": "Add a partner to share access to this farm.",
+  "editPartnerDialogTitle": "Edit Partner",
+  "partnerUpdated": "Partner updated.",
+  "removePartnerTitle": "Remove Partner",
+  "removePartnerContent": "Remove {partnerName} from this farm?",
+  "@removePartnerContent": {
+    "placeholders": {
+      "partnerName": {"type": "String"}
+    }
+  },
+  "partnerRemoved": "Partner removed.",
+  "roleChangedTo": "Role changed to {role}.",
+  "@roleChangedTo": {
+    "placeholders": {
+      "role": {"type": "String"}
+    }
+  },
+  "addPartnerFabLabel": "Add Partner",
+  "addPartnerHeader": "Add Partner",
+  "createNewPartnerSubtitle": "Create a new partner account",
+  "createPartnerButton": "Create Partner",
+  "partnerCreatedSuccessfully": "Partner created successfully",
+
+  "aiHealthAssistantTitle": "AI Health Assistant",
+  "askAboutHealthHint": "Ask about this animal's health...",
+  "askMeAnythingEmptyState": "Ask me anything about this animal's health",
+  "suggestedQuestionIllness": "Signs of illness?",
+  "suggestedQuestionVaccination": "Vaccination schedule?",
+  "suggestedQuestionPregnancy": "Pregnancy care tips?",
+  "thinkingLabel": "Thinking...",
+  "aiErrorResponse": "Sorry, I could not get a response. Please try again.",
+
+  "syncingChanges": "Syncing changes to cloud",
+  "allChangesSynced": "All changes synced",
+  "offlineBannerText": "You are offline. Changes will sync when online.",
+  "offlineTooltip": "Offline. Changes will sync when online.",
+
+  "verifyYourEmailTitle": "Verify your email",
+  "verifyEmailBody": "We sent a verification link to your email address. Please check your inbox and verify before continuing.",
+  "verificationEmailSent": "Verification email sent.",
+  "failedToSend": "Failed to send: {error}",
+  "@failedToSend": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "resendVerificationEmail": "Resend verification email",
+  "signOutButton": "Sign out",
+
+  "yourProfile": "Your Profile",
+  "changePasswordSection": "Change Password",
+  "newPasswordLabel": "New Password (leave blank to keep)",
+  "minSixChars": "Min 6 characters",
+  "updateProfileButton": "Update Profile",
+  "profileUpdated": "Profile updated! Check your email to confirm any email change.",
+  "avatarUploadFailed": "Avatar upload failed: {error}",
+  "@avatarUploadFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "languageLabel": "Language / Langue / لغة",
+  "selectLanguage": "Select Language"
+}
